@@ -6,3 +6,4 @@
 .ignition/
 .gazebo/
 !.gazebo/models
+codebase_snapshot.md
