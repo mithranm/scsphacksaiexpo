@@ -1,0 +1,33 @@
+{
+    "name": "Gazebo 11 Dev Container",
+    "build": {
+      "dockerfile": "Dockerfile",
+      "context": ".."
+    },
+  
+    //  ⬇ Bind your host 'gazebo-devcontainer' directly into /home/vscode in the container
+    "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode,type=bind,consistency=cached",
+    "workspaceFolder": "/home/vscode",
+  
+    // Make sure each new terminal is a login shell so ~/.bashrc gets sourced
+  
+    // Extensions you might want (e.g. Python)
+    "customizations": {
+      "vscode": {
+        "settings": {
+          "terminal.integrated.shell.linux": "/bin/bash",
+          "terminal.integrated.shellArgs.linux": ["-l"]
+        },
+        "extensions": [
+          "ms-python.python"
+        ]
+      }
+    },
+  
+    // Forward Gazebo’s default port for remote gzclient if needed
+    "forwardPorts": [11345],
+  
+    // Run as unprivileged user 'vscode'
+    "remoteUser": "vscode"
+  }
+  

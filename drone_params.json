@@ -1,0 +1,28 @@
+{
+    "hull": {
+        "length": 0.05,
+        "width": 0.025,
+        "height": 0.01,
+        "mass": 0.02
+    },
+    "arms": {
+        "count": 4,
+        "length": 0.06,
+        "cross_section": [0.003, 0.003],
+        "density": 1600
+    },
+    "rotors": {
+        "prop_diameter": 0.031,
+        "prop_mass": 0.001,
+        "motor_mass": 0.014,
+        "torque_constant": 1.2e-7,
+        "moment_constant": 2.5e-8
+    },
+    "battery": {
+        "mass": 0.007,
+        "dimensions": [0.03, 0.02, 0.008]
+    },
+    "camera": {
+        "mass": 0.005
+    }
+}
