@@ -1,7 +1,26 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <sdf version="1.7">
   <world name="default">
-    <!-- Default lighting and ground plane -->
+
+    <!-- 1. Physics block with type="ode" -->
+    <physics name="default_physics" default="true" type="ode">
+      <!-- Use ODE (the default) -->
+      <ode>
+        <!-- Internal physics timestep (seconds) -->
+        <max_step_size>0.001</max_step_size>
+        <!-- How many iterations per real‐second -->
+        <real_time_update_rate>1000</real_time_update_rate>
+      </ode>
+      <!-- Gravity vector (m/s²) -->
+      <gravity>0 0 -9.81</gravity>
+      <!-- Contact parameters (optional) -->
+      <contact>
+        <max_vel>100.0</max_vel>
+        <min_depth>0.001</min_depth>
+      </contact>
+    </physics>
+
+    <!-- 2. Standard ground_plane and sun -->
     <include>
       <uri>model://ground_plane</uri>
     </include>
@@ -9,35 +28,30 @@
       <uri>model://sun</uri>
     </include>
 
-    <!-- Spawn Tesseract Nano at origin -->
+    <!-- 3. Spawn Tesseract Nano at origin -->
     <include>
       <uri>model://tesseract_nano</uri>
       <pose>0 0 0 0 0 0</pose>
     </include>
 
-    <!-- Optional: add a static obstacle or marker -->
+    <!-- 4. (Optional) a box to check collisions -->
     <model name="box_marker">
       <pose>1 0 0.25 0 0 0</pose>
       <link name="link">
         <pose>0 0 0 0 0 0</pose>
         <collision name="collision">
           <geometry>
-            <box>
-              <size>0.5 0.5 0.5</size>
-            </box>
+            <box><size>0.5 0.5 0.5</size></box>
           </geometry>
         </collision>
         <visual name="visual">
           <geometry>
-            <box>
-              <size>0.5 0.5 0.5</size>
-            </box>
+            <box><size>0.5 0.5 0.5</size></box>
           </geometry>
-          <material>
-            <ambient>0.8 0.2 0.2 1</ambient>
-          </material>
+          <material><ambient>0.8 0.2 0.2 1</ambient></material>
         </visual>
       </link>
     </model>
+
   </world>
 </sdf>

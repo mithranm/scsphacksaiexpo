@@ -1,33 +1,33 @@
 {
-    "name": "Gazebo 11 Dev Container",
-    "build": {
-      "dockerfile": "Dockerfile",
-      "context": ".."
-    },
-  
-    //  ⬇ Bind your host 'gazebo-devcontainer' directly into /home/vscode in the container
-    "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode,type=bind,consistency=cached",
-    "workspaceFolder": "/home/vscode",
-  
-    // Make sure each new terminal is a login shell so ~/.bashrc gets sourced
-  
-    // Extensions you might want (e.g. Python)
-    "customizations": {
-      "vscode": {
-        "settings": {
-          "terminal.integrated.shell.linux": "/bin/bash",
-          "terminal.integrated.shellArgs.linux": ["-l"]
-        },
-        "extensions": [
-          "ms-python.python"
-        ]
+  "name": "Gazebo 11 with X11 (VcXsrv)",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // 1) Bind-mount your host 'gazebo-devcontainer' folder into /home/vscode in the container
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode,type=bind,consistency=cached",
+  "workspaceFolder": "/home/vscode",
+
+  // 2) Make every new terminal a login shell (“-l”) so that ~/.bashrc is sourced automatically
+
+  // 3) Send X11 to Windows host at DISPLAY=:0.0 (VcXsrv must be running on Windows)
+  "remoteEnv": {
+    "DISPLAY": "host.docker.internal:0.0"
+  },
+
+  // 4) Helpful extensions (e.g., for Python development)
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "terminal.integrated.shellArgs.linux": ["-l"]
       }
-    },
-  
-    // Forward Gazebo’s default port for remote gzclient if needed
-    "forwardPorts": [11345],
-  
-    // Run as unprivileged user 'vscode'
-    "remoteUser": "vscode"
-  }
-  
+    }
+  },
+  // 6) Run as unprivileged user 'vscode' inside the container
+  "remoteUser": "vscode"
+}

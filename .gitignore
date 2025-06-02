@@ -1,3 +1,8 @@
 .cache/
 .vscode-server/
 .dotnet/
+.bash_history
+.sdformat/
+.ignition/
+.gazebo/
+!.gazebo/models

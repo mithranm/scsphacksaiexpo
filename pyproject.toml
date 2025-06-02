@@ -6,4 +6,6 @@ include_globs = [
 exclude_globs = [
     ".git/*",
     ".vscode-server/*",
+    ".dotnet/*",
+    ".cache/*",
 ]
