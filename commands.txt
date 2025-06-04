@@ -1,0 +1,11 @@
+Attach to the terminal:
+
+tmux attach-session -t sim_services
+
+Get all tmux logs:
+
+tmux capture-pane -p -S -
+
+Cat these:
+
+cat /home/vscode/logs/gzserver_instance.log

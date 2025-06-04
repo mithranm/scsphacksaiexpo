@@ -1,33 +1,64 @@
 {
-  "name": "Gazebo 11 with X11 (VcXsrv)",
+  "name": "Gazebo 11 + Node.js Orchestrator (Focal)",
   "build": {
     "dockerfile": "Dockerfile",
-    "context": ".."
+    "context": "..",
+    "args": {
+      "NODE_MAJOR_VERSION": "18",
+      "NLOHMANN_JSON_VERSION": "v3.11.3"
+    }
   },
-
-  // 1) Bind-mount your host 'gazebo-devcontainer' folder into /home/vscode in the container
-  "workspaceMount": "source=${localWorkspaceFolder},target=/home/vscode,type=bind,consistency=cached",
-  "workspaceFolder": "/home/vscode",
-
-  // 2) Make every new terminal a login shell (“-l”) so that ~/.bashrc is sourced automatically
-
-  // 3) Send X11 to Windows host at DISPLAY=:0.0 (VcXsrv must be running on Windows)
-  "remoteEnv": {
-    "DISPLAY": "host.docker.internal:0.0"
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/home/vscode/workspace,type=bind,consistency=cached"
+  ],
+  "workspaceFolder": "/home/vscode/workspace",
+  "runArgs": [
+    "--env", "DISPLAY=host.docker.internal:0.0",
+    "--security-opt", "seccomp=unconfined",
+    "--add-host=host.docker.internal:host-gateway"
+  ],
+  "containerEnv": {
+    "QT_X11_NO_MITSHM": "1",
+    "CUSTOM_PLUGIN_BUILD_DIR": "/home/vscode/workspace/gazebo_plugin/build",
+    "CUSTOM_PLUGIN_INSTALL_DIR": "/usr/local/lib/gazebo-11/plugins",
+    "GAZEBO_MODEL_PATH": "/home/vscode/workspace/.gazebo/models:${GAZEBO_MODEL_PATH}",
+    "NODE_ORCHESTRATOR_PORT": "28642",
+    "GAZEBO_ZMQ_ENDPOINT": "tcp://localhost:5555",
+    "TRAJECTORY_LOG_DIR": "/home/vscode/workspace/trajectory_logs",
+    "CPLUS_INCLUDE_PATH": "/usr/local/include:${CPLUS_INCLUDE_PATH}",
+    "GAZEBO_WORLD_FILE_PATH": "/home/vscode/workspace/world.sdf"
   },
-
-  // 4) Helpful extensions (e.g., for Python development)
+  "postCreateCommand": "cd /home/vscode/workspace/gazebo_plugin && rm -rf build && mkdir -p build && cd build && cmake .. && make && echo '=== Listing build directory after make: ===' && ls -la . && echo '=========================================' && sudo cmake --install . --prefix /usr/local && echo '=== Listing install directory after install (/usr/local/lib/gazebo-11/plugins/): ===' && ls -la /usr/local/lib/gazebo-11/plugins/ && echo '============================================================================' && if [ -f /home/vscode/workspace/gazebo_orchestrator_node/package.json ]; then cd /home/vscode/workspace/gazebo_orchestrator_node && npm install; fi && mkdir -p /home/vscode/workspace/trajectory_logs && sudo chown vscode:vscode /home/vscode/workspace/trajectory_logs",
+  "postAttachCommand": {
+    "server": "tmux new-session -d -s sim_services \"tmux new-window -n gzserver '/usr/local/bin/start_gazebo.sh' ; tmux new-window -n orchestrator 'if [ -f /home/vscode/workspace/gazebo_orchestrator_node/server.js ]; then cd /home/vscode/workspace/gazebo_orchestrator_node && node server.js; else echo Node orchestrator not found; sleep infinity; fi' ; tmux select-window -t sim_services:0\""
+  },
   "customizations": {
     "vscode": {
       "extensions": [
-        "ms-python.python"
+        "ms-python.python",
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "redhat.vscode-xml",
+        "mutantdino.resourcemonitor",
+        "cheshirekow.cmake-format",
+        "dbaeumer.vscode-eslint"
       ],
       "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
-        "terminal.integrated.shellArgs.linux": ["-l"]
+        "python.defaultInterpreterPath": "/usr/bin/python3",
+        "cmake.configureOnOpen": true,
+        "C_Cpp.default.includePath": [
+          "${workspaceFolder}/**",
+          "/usr/local/include/**"
+        ]
       }
     }
   },
-  // 6) Run as unprivileged user 'vscode' inside the container
-  "remoteUser": "vscode"
+  "forwardPorts": [
+    11345,
+    5555,
+    28642
+  ],
+  "remoteUser": "vscode",
+  "overrideCommand": false
 }

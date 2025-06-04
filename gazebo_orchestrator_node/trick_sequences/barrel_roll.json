@@ -1,0 +1,21 @@
+{
+    "description": "Generic Barrel Roll (around drone's longitudinal axis)",
+    "parameters": {
+      "T_HOVER_BASE": 0.123,
+      "PUNCH_FACTOR": 1.2,
+      "ROLL_DIFFERENTIAL_FACTOR": 0.7,
+      "MAINTAIN_COLLECTIVE_FACTOR": 1.4
+    },
+    "duration": 1.8,
+    "time_step": 0.01,
+    "keyframes": [
+      { "time": 0.00, "phase": "HOVER" },
+      { "time": 0.10, "phase": "PUNCH" },
+      { "time": 0.20, "phase": "INITIATE_ROLL" },
+      { "time": 0.40, "phase": "MAX_ROLL_INPUT" },
+      { "time": 1.30, "phase": "MAINTAIN_MAX_ROLL_INPUT" },
+      { "time": 1.40, "phase": "RECOVER_ROLL" },
+      { "time": 1.60, "phase": "STABILIZE_HOVER" },
+      { "time": 1.80, "phase": "FINAL_HOVER" }
+    ]
+  }
