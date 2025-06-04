@@ -1,76 +1,97 @@
-#ifndef GAZEBO_TRICK_EXECUTOR_PLUGIN_HH
-#define GAZEBO_TRICK_EXECUTOR_PLUGIN_HH
+#ifndef TRICK_EXECUTOR_PLUGIN_HH
+#define TRICK_EXECUTOR_PLUGIN_HH
 
 #include <gazebo/common/Plugin.hh>
-#include <gazebo/physics/physics.hh>
-#include <gazebo/common/Events.hh>      
+#include <gazebo/physics/Model.hh>
+#include <gazebo/physics/Link.hh>
+#include <gazebo/physics/World.hh>   // For WorldPtr
+#include <gazebo/common/Events.hh>
+#include <gazebo/common/Time.hh>     // For common::Time
 
-#include <thread>
-#include <vector>
-#include <string>
-#include <mutex>
-#include <condition_variable>
-#include <atomic>
+#include <ignition/math/Pose3.hh>    // For ignition::math::Pose3
+#include <ignition/math/Vector3.hh>  // For ignition::math::Vector3d (typedef'd)
+#include <ignition/math/Quaternion.hh>// For ignition::math::Quaterniond (typedef'd)
+#include <ignition/math/PID.hh>      // For ignition::math::PID
+#include <ignition/math/Angle.hh>    // For ignition::math::Angle
 
-#include <zmq.hpp> 
+#include <zmq.hpp>
 #include <nlohmann/json.hpp>
 
-#include <ignition/math/Pose3.hh>    
-#include <ignition/math/Vector3.hh>  
-#include <ignition/math/Quaternion.hh> 
+#include <thread>
+#include <atomic>
+#include <vector>
+#include <string>
 
 namespace gazebo
 {
-  using json = nlohmann::json;
-
   class TrickExecutorPlugin : public ModelPlugin
   {
-    public:
-      TrickExecutorPlugin();
-      virtual ~TrickExecutorPlugin();
-      virtual void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf);
+  public:
+    TrickExecutorPlugin();
+    virtual ~TrickExecutorPlugin();
+    void Load(physics::ModelPtr _model, sdf::ElementPtr _sdf) override;
+    void OnUpdate();
 
-    protected:
-      virtual void OnUpdate();
+  private:
+    void ZmqServerLoop();
+    void HandleJsonRequest(const std::string &requestStr);
+    void SetInitialState(const nlohmann::json &initState);
+    void ApplyRotorThrusts(const std::vector<double> &thrusts);
+    void ApplyDrag();
+    double GetModelMass() const;
 
-    private:
-      void ZmqServerLoop();
-      json HandleGazeboCommand(const json& cmd_json);
+    // Structure to hold a single frame of trajectory data
+    struct Frame
+    {
+      double                     t;       // Time offset from start of sequence
+      ignition::math::Vector3d   pos;     // World-frame position
+      ignition::math::Quaterniond orient; // World-frame orientation (W,X,Y,Z)
+      ignition::math::Vector3d   linVel;  // World-frame linear velocity
+      ignition::math::Vector3d   angVel;  // World-frame angular velocity
+    };
 
-      physics::ModelPtr model;
-      event::ConnectionPtr updateConnection;
+  private:
+    // Gazebo Pointers
+    physics::ModelPtr               model_;
+    physics::WorldPtr               world_;         // Pointer to the world
+    physics::LinkPtr                hullLink_;      // Link for applying forces/torques directly
+    std::vector<physics::LinkPtr>   rotorLinks_;    // Links for applying rotor thrusts
 
-      zmq::context_t zmq_context;
-      zmq::socket_t zmq_socket;
-      std::thread zmq_thread;
-      std::atomic<bool> terminate_zmq_thread{false};
-      std::string zmq_port_str = "5555";
+    // Plugin Parameters from SDF
+    unsigned int                    rotorCount_;
+    std::string                     rotorBaseName_;
+    bool                            runTestMode_;
+    double                          testModeRadius_;
+    double                          testModeAngularVel_;
+    double                          testModeAltitude_;
+    double                          dragCoeff_;
+    std::string                     zmqPort_;
 
-      std::atomic<bool> executing_trick{false};
-      
-      double trick_start_time_sim = 0.0;
-      double trick_current_time_sim_offset = 0.0;
-      double trick_duration = 0.0;
-      double trick_time_step = 0.01; 
-      std::vector<std::vector<double>> rotor_thrust_sequence;
-      size_t current_thrust_idx = 0; 
-      std::mutex trick_execution_mutex;
+    // ZMQ Networking
+    zmq::context_t                  zmqContext_;
+    zmq::socket_t                   zmqSocket_;
+    std::thread                     zmqThread_;
+    std::atomic<bool>               zmqThreadRunning_{false}; // Initialized
 
-      std::vector<json> recorded_trajectory; 
+    // Sequence Execution State
+    std::atomic<bool>                               sequenceActive_{false}; // Initialized
+    double                                          sequenceStartTime_;
+    double                                          sequenceDuration_;
+    size_t                                          nextThrustIndex_;
+    std::vector<std::pair<double,std::vector<double>>> rotorThrustSequence_;
+    std::vector<double>                             currentThrusts_;
+    std::vector<Frame>                              capturedFrames_;
 
-      physics::LinkPtr body_link;
-      std::vector<physics::LinkPtr> rotor_links;
+    // Event Connection & Timing
+    event::ConnectionPtr            updateConnection_;
+    common::Time                    lastUpdateTime_; // For calculating dt
 
-      std::condition_variable trick_completion_cv;
-      std::mutex trick_completion_mutex;
-      std::atomic<bool> trick_sim_complete_flag{false};
-
-      // Members for Test Mode (Circle Flight)
-      std::atomic<bool> is_test_mode_active{false}; 
-      double test_mode_radius = 2.0;
-      double test_mode_angular_velocity = 0.5;
-      double test_mode_altitude = 1.0;
-      // Test mode will use trick_duration from constants for its duration
+    // PID Controllers for Test Mode
+    ignition::math::PID             pidX_;
+    ignition::math::PID             pidY_;
+    ignition::math::PID             pidZ_;
+    ignition::math::PID             pidYaw_;
   };
 }
-#endif
+
+#endif // TRICK_EXECUTOR_PLUGIN_HH

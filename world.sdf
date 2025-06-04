@@ -3,11 +3,21 @@
   <world name="default">
     <gravity>0 0 -9.81</gravity>
     <physics name="default_physics" default="true" type="ode">
-      <max_step_size>0.001</max_step_size> 
-      <real_time_update_rate>0</real_time_update_rate> 
+      <max_step_size>0.001</max_step_size>
+      <real_time_update_rate>0</real_time_update_rate>
       <ode>
-        <solver><type>quick</type><iters>50</iters><sor>1.3</sor><use_dynamic_moi_rescaling>false</use_dynamic_moi_rescaling></solver>
-        <constraints><cfm>0</cfm><erp>0.2</erp><contact_max_correcting_vel>100</contact_max_correcting_vel><contact_surface_layer>0.001</contact_surface_layer></constraints>
+        <solver>
+          <type>quick</type>
+          <iters>50</iters>
+          <sor>1.3</sor>
+          <use_dynamic_moi_rescaling>false</use_dynamic_moi_rescaling>
+        </solver>
+        <constraints>
+          <cfm>0</cfm>
+          <erp>0.2</erp>
+          <contact_max_correcting_vel>100</contact_max_correcting_vel>
+          <contact_surface_layer>0.001</contact_surface_layer>
+        </constraints>
       </ode>
     </physics>
 
@@ -17,62 +27,194 @@
       <shadows>true</shadows>
     </scene>
 
-    <include><uri>model://ground_plane</uri></include>
-    <include><uri>model://sun</uri></include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    <include>
+      <uri>model://sun</uri>
+    </include>
 
-    <include name="active_drone"> 
-      <uri>model://tesseract_nano</uri> 
-      <pose>0 0 0.3 0 0 0</pose>
+    <!-- Spawn the generated quadcopter -->
+    <!-- The plugin configuration will be loaded from the model's own SDF file -->
+    <include name="active_drone">
+      <uri>model://x_quad_drone_generated</uri>
+      <pose>0 0 1.0 0 0 0</pose>
     </include>
 
     <!-- Rectangular Obstacles/Hoops -->
     <model name='hoop_1'>
       <static>true</static>
-      <pose>3 0 1.0 0 0 0</pose> 
+      <pose>3 0 1.0 0 0 0</pose>
       <link name='frame_bottom'>
         <pose>0 0 -0.4 0 0 0</pose>
-        <collision name='bottom_col'><geometry><box><size>1.0 0.1 0.1</size></box></geometry></collision>
-        <visual name='bottom_vis'><geometry><box><size>1.0 0.1 0.1</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Red</name></script></material></visual>
+        <collision name='bottom_col'>
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='bottom_vis'>
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+        </visual>
       </link>
       <link name='frame_top'>
         <pose>0 0 0.4 0 0 0</pose>
-        <collision name='top_col'><geometry><box><size>1.0 0.1 0.1</size></box></geometry></collision>
-        <visual name='top_vis'><geometry><box><size>1.0 0.1 0.1</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Red</name></script></material></visual>
+        <collision name='top_col'>
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='top_vis'>
+          <geometry>
+            <box>
+              <size>1.0 0.1 0.1</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+        </visual>
       </link>
       <link name='frame_left'>
-        <pose>-0.45 0 0 0 0 0</pose> <!-- Adjusted for 0.1 thickness -->
-        <collision name='left_col'><geometry><box><size>0.1 0.1 0.7</size></box></geometry></collision> <!-- Height adjusted -->
-        <visual name='left_vis'><geometry><box><size>0.1 0.1 0.7</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Red</name></script></material></visual>
+        <pose>-0.45 0 0 0 0 0</pose>
+        <collision name='left_col'>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='left_vis'>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+        </visual>
       </link>
       <link name='frame_right'>
-        <pose>0.45 0 0 0 0 0</pose> <!-- Adjusted for 0.1 thickness -->
-        <collision name='right_col'><geometry><box><size>0.1 0.1 0.7</size></box></geometry></collision> <!-- Height adjusted -->
-        <visual name='right_vis'><geometry><box><size>0.1 0.1 0.7</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Red</name></script></material></visual>
+        <pose>0.45 0 0 0 0 0</pose>
+        <collision name='right_col'>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.7</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='right_vis'>
+          <geometry>
+            <box>
+              <size>0.1 0.1 0.7</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Red</name>
+            </script>
+          </material>
+        </visual>
       </link>
     </model>
 
     <model name='pillar_1'>
       <static>true</static>
-      <pose>5 2 1.5 0 0 0</pose> <!-- x, y, z (center of pillar base) -->
+      <pose>5 2 1.5 0 0 0</pose>
       <link name='pillar_link'>
-        <pose>0 0 0 0 0 0</pose> <!-- Relative to model pose -->
-        <collision name='collision'><geometry><box><size>0.3 0.3 3.0</size></box></geometry></collision>
-        <visual name='visual'><geometry><box><size>0.3 0.3 3.0</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Blue</name></script></material></visual>
+        <pose>0 0 0 0 0 0</pose>
+        <collision name='collision'>
+          <geometry>
+            <box>
+              <size>0.3 0.3 3.0</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='visual'>
+          <geometry>
+            <box>
+              <size>0.3 0.3 3.0</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Blue</name>
+            </script>
+          </material>
+        </visual>
       </link>
     </model>
 
-     <model name='tight_gap_obstacle'>
+    <model name='tight_gap_obstacle'>
       <static>true</static>
-      <pose>4 -3 0.75 0 0 1.5708</pose> <!-- Rotated 90 deg around Z -->
+      <pose>4 -3 0.75 0 0 1.5708</pose>
       <link name='wall_1'>
-        <pose>0 -0.3 0 0 0 0</pose> <!-- Offset from model origin -->
-        <collision name='wall1_col'><geometry><box><size>1.5 0.1 1.5</size></box></geometry></collision>
-        <visual name='wall1_vis'><geometry><box><size>1.5 0.1 1.5</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Green</name></script></material></visual>
+        <pose>0 -0.3 0 0 0 0</pose>
+        <collision name='wall1_col'>
+          <geometry>
+            <box>
+              <size>1.5 0.1 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='wall1_vis'>
+          <geometry>
+            <box>
+              <size>1.5 0.1 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Green</name>
+            </script>
+          </material>
+        </visual>
       </link>
       <link name='wall_2'>
-        <pose>0 0.3 0 0 0 0</pose> <!-- Offset from model origin -->
-        <collision name='wall2_col'><geometry><box><size>1.5 0.1 1.5</size></box></geometry></collision>
-        <visual name='wall2_vis'><geometry><box><size>1.5 0.1 1.5</size></box></geometry><material><script><uri>file://media/materials/scripts/gazebo.material</uri><name>Gazebo/Green</name></script></material></visual>
+        <pose>0 0.3 0 0 0 0</pose>
+        <collision name='wall2_col'>
+          <geometry>
+            <box>
+              <size>1.5 0.1 1.5</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name='wall2_vis'>
+          <geometry>
+            <box>
+              <size>1.5 0.1 1.5</size>
+            </box>
+          </geometry>
+          <material>
+            <script>
+              <uri>file://media/materials/scripts/gazebo.material</uri>
+              <name>Gazebo/Green</name>
+            </script>
+          </material>
+        </visual>
       </link>
       <!-- Gap between wall_1 and wall_2 is 0.6 - 0.1 = 0.5m wide -->
     </model>

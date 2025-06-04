@@ -8,4 +8,6 @@ tmux capture-pane -p -S -
 
 Cat these:
 
-cat /home/vscode/logs/gzserver_instance.log
+head -150 /home/vscode/logs/gzserver_instance.log
+
+head -150 /home/vscode/logs/gzserver_script.log

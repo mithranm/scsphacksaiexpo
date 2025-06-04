@@ -1,28 +1,53 @@
 {
-    "hull": {
-        "length": 0.05,
-        "width": 0.025,
-        "height": 0.01,
-        "mass": 0.02
-    },
-    "arms": {
-        "count": 4,
-        "length": 0.06,
-        "cross_section": [0.003, 0.003],
-        "density": 1600
-    },
-    "rotors": {
-        "prop_diameter": 0.031,
-        "prop_mass": 0.001,
-        "motor_mass": 0.014,
-        "torque_constant": 1.2e-7,
-        "moment_constant": 2.5e-8
-    },
-    "battery": {
-        "mass": 0.007,
-        "dimensions": [0.03, 0.02, 0.008]
-    },
-    "camera": {
-        "mass": 0.005
-    }
+  "central_frame_structure": {
+    "mass_kg": 0.052,
+    "description": "Represents the non-arm parts of the frame kit (plates, standoffs). Frame kit total 110g - calculated arm mass ~58g."
+  },
+  "electronics_stack": {
+    "mass_kg": 0.060,
+    "dimensions_m": [0.04, 0.04, 0.03],
+    "description": "FC, ESC, Receiver, PDB estimate"
+  },
+  "arms": {
+    "count": 4,
+    "length_from_center_to_motor_m": 0.11,
+    "width_m": 0.015,
+    "thickness_m": 0.005,
+    "material_density_kg_per_m3": 1750,
+    "mass_per_arm_kg": 0.0144375,
+    "description": "Parameters for a single arm in an 'X' configuration, 220mm motor-to-motor frame."
+  },
+  "rotors": {
+    "count": 4,
+    "prop_diameter_m": 0.127,
+    "prop_mass_kg": 0.004,
+    "motor_mass_kg": 0.035,
+    "thrust_coeff": 2.0e-6,
+    "torque_coeff_motor": 1.0e-7,
+    "description": "Per motor/prop. thrust_coeff (kT) relates ω² → Thrust (N). torque_coeff_motor (kM) relates ω² → torque (Nm)."
+  },
+  "battery": {
+    "mass_kg": 0.160,
+    "dimensions_m": [0.075, 0.035, 0.035]
+  },
+  "vehicle_total_mass_kg_AUW": 0.48575, "comment": "Adjusted: 0.052 (central) + 0.060 (electronics) + 0.160 (battery) + 4*0.0144375 (arms) + 4*(0.004+0.035) (rotors) = 0.272 + 0.05775 + 0.156 = 0.48575. Original was 0.49275 (diff 0.007, which was camera mass)",
+  "motor_positions_relative_to_cog_m": {
+    "motor1_front_right": [0.0778, -0.0778, 0],
+    "motor2_rear_left":   [-0.0778, 0.0778, 0],
+    "motor3_front_left":  [0.0778, 0.0778, 0],
+    "motor4_rear_right":  [-0.0778, -0.0778, 0]
+  },
+  "motor_spin_directions": {
+    "motor1_front_right": "CW",
+    "motor2_rear_left":   "CW",
+    "motor3_front_left":  "CCW",
+    "motor4_rear_right":  "CCW"
+  },
+  "gazebo_plugin_run_test_mode": true, "comment": "Set to true for testing circular flight",
+  "gazebo_plugin_test_radius": 2.0,
+  "gazebo_plugin_test_angular_velocity": 0.5, "comment": "rad/s",
+  "gazebo_plugin_test_altitude": 1.5, "comment": "Increased altitude slightly",
+  "drag_coefficient": 0.1, "comment": "Adjusted drag coefficient for potentially more realism",
+  "initial_lin_vel": [0.0, 0.0, 0.0],
+  "initial_ang_vel": [0.0, 0.0, 0.0]
 }

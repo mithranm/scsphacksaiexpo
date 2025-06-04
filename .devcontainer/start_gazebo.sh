@@ -51,6 +51,18 @@ echo "EFFECTIVE GAZEBO_PLUGIN_PATH set to: [${GAZEBO_PLUGIN_PATH}]" >&3
 
 
 # --- Construct and Export GAZEBO_MODEL_PATH (no change) ---
+echo "INFO: Attempting to clear Gazebo model cache..." >&3
+if [ -d "${HOME}/.gazebo/models" ]; then
+    echo "INFO: Found Gazebo model cache directory: ${HOME}/.gazebo/models. Clearing its contents." >&3
+    rm -rf "${HOME}/.gazebo/models/"*
+    echo "INFO: Contents of ${HOME}/.gazebo/models/ cleared." >&3
+else
+    echo "INFO: Gazebo model cache directory ${HOME}/.gazebo/models/ not found. Skipping clear." >&3
+fi
+# Ensure the directory exists for Gazebo and user-specific models
+mkdir -p "${HOME}/.gazebo/models"
+echo "INFO: Ensured Gazebo model cache directory ${HOME}/.gazebo/models/ exists." >&3
+
 echo "STEP 4: Constructing GAZEBO_MODEL_PATH..." >&3
 WORKSPACE_MODEL_DIR="${HOME}/workspace/.gazebo/models"
 USER_GAZEBO_MODEL_DIR="${HOME}/.gazebo/models"
@@ -76,6 +88,19 @@ cd "${HOME}/workspace"
 if [ -f "./generate_model.py" ]; then
     python3 ./generate_model.py >> "${GZ_SERVER_LOG}" 2>&1
     echo "Model generation script finished." >&3
+    # Add path for locally generated models
+    export GAZEBO_MODEL_PATH="${HOME}/workspace/generated_models:${GAZEBO_MODEL_PATH}"
+    echo "GAZEBO_MODEL_PATH updated for generated models: [${GAZEBO_MODEL_PATH}]" >&3
+
+    GENERATED_SDF_PATH="${HOME}/workspace/generated_models/x_quad_drone_generated/model.sdf"
+    if [ -f "${GENERATED_SDF_PATH}" ]; then
+        echo "--- Content of generated ${GENERATED_SDF_PATH} ---" >&3
+        cat "${GENERATED_SDF_PATH}" >> "${GZ_SERVER_LOG}"
+        echo "
+--- End of ${GENERATED_SDF_PATH} content ---" >&3
+    else
+        echo "ERROR: Generated SDF file ${GENERATED_SDF_PATH} not found after script execution!" >&3
+    fi
 else
     echo "WARNING: generate_model.py not found." >&3
 fi

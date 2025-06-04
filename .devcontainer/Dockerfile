@@ -20,13 +20,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # 5) Define ALL APT sources (each in its own layer for better caching if one definition changes)
 #    Layer 5.1: Base Ubuntu sources
 COPY .devcontainer/sources.list /etc/apt/sources.list
+
 #    Layer 5.2: Node.js source
 RUN mkdir -p /etc/apt/keyrings && \
     curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
     echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_${NODE_MAJOR_VERSION}.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+
 #    Layer 5.3: ROS Noetic source
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key | gpg --dearmor -o /usr/share/keyrings/ros-archive-keyring.gpg && \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list
+
 #    Note: OSRF (Gazebo) sources are typically included in the base gazebo image. If not, add them here.
 
 # 6) Perform ONE main apt-get update.
@@ -44,23 +47,28 @@ RUN apt-get install -y --no-install-recommends \
     software-properties-common \
     x11-apps \
     tmux
+
 #    Group 7.2: Python base and common libraries (stable)
 RUN apt-get install -y --no-install-recommends \
     python3 \
     python3-pip \
     python3-venv \
     python3-numpy
+
 #    Group 7.3: Gazebo and its direct dependencies (fairly stable once versions are set)
 RUN apt-get install -y --no-install-recommends \
     gazebo11 libgazebo11-dev \
     libgl1-mesa-dev libglu1-mesa freeglut3 \
     libeigen3-dev libopencv-dev \
-    libprotobuf-dev protobuf-compiler
+    libprotobuf-dev protobuf-compiler \
+    nlohmann-json3-dev
+
 #    Group 7.4: ROS specific packages (stable for a given ROS distro)
 RUN apt-get install -y --no-install-recommends \
     ros-noetic-gazebo-msgs \
     python3-empy \
     python3-jinja2
+
 #    Group 7.5: Node.js and other specific libraries (Node.js version tied to ARG)
 RUN apt-get install -y --no-install-recommends \
     nodejs \
@@ -69,10 +77,6 @@ RUN apt-get install -y --no-install-recommends \
 
 # 8) Clean up APT lists ONCE after all installs are done
 RUN rm -rf /var/lib/apt/lists/*
-
-# --- Add nlohmann/json header manually ---
-RUN mkdir -p /usr/local/include/nlohmann && \
-    curl -Lo /usr/local/include/nlohmann/json.hpp https://github.com/nlohmann/json/releases/download/${NLOHMANN_JSON_VERSION}/json.hpp
 
 # 9) Install Python packages from requirements.txt
 COPY requirements.txt /tmp/requirements.txt
