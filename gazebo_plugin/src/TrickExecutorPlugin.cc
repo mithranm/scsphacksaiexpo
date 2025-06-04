@@ -1,13 +1,13 @@
 #include "TrickExecutorPlugin.hh" 
 #include <gazebo/common/Events.hh>
 #include <gazebo/physics/World.hh>
-#include <gazebo/physics/PhysicsEngine.hh> // <<< ADDED THIS INCLUDE
+#include <gazebo/physics/PhysicsEngine.hh> 
 #include <ignition/math/Pose3.hh>      
 #include <ignition/math/PID.hh>        
 #include <ignition/math/Angle.hh>      
 #include <iostream>
 #include <thread>
-#include <chrono> // Ensure this is included for std::chrono::duration
+#include <chrono> 
 #include <zmq.h> 
 
 using namespace gazebo;
@@ -30,15 +30,16 @@ TrickExecutorPlugin::TrickExecutorPlugin()
     sequenceDuration_(0.0),
     nextThrustIndex_(0)
 {
-    pidX_.Init(20.0, 0.1, 2.5);
-    pidY_.Init(20.0, 0.1, 2.5);
-    pidZ_.Init(30.0, 1.0, 5.0);
-    pidYaw_.Init(2.5, 0.05, 0.25);
+    // Start with VERY GENTLE gains for initial stability testing
+    pidX_.Init(1.0, 0.0, 0.5);   // P, I, D 
+    pidY_.Init(1.0, 0.0, 0.5);   // P, I, D
+    pidZ_.Init(5.0, 0.1, 1.0);   // Altitude can often have higher P
+    pidYaw_.Init(0.5, 0.0, 0.1); // Yaw control is often very sensitive
 
-    pidX_.SetCmdMax(50.0); pidX_.SetCmdMin(-50.0);
-    pidY_.SetCmdMax(50.0); pidY_.SetCmdMin(-50.0);
-    pidZ_.SetCmdMax(100.0); pidZ_.SetCmdMin(-20.0);
-    pidYaw_.SetCmdMax(2.0); pidYaw_.SetCmdMin(-2.0);
+    pidX_.SetCmdMax(10.0); pidX_.SetCmdMin(-10.0); 
+    pidY_.SetCmdMax(10.0); pidY_.SetCmdMin(-10.0); 
+    pidZ_.SetCmdMax(15.0); pidZ_.SetCmdMin(0.0);  
+    pidYaw_.SetCmdMax(0.5); pidYaw_.SetCmdMin(-0.5); 
 }
 
 //////////////////////////////////////////////////
@@ -123,12 +124,11 @@ void TrickExecutorPlugin::OnUpdate()
   if (!this->model_ || !this->hullLink_ || !this->world_) return;
 
   common::Time currentTime = this->world_->SimTime();
-  double dt_double = (currentTime - this->lastUpdateTime_).Double(); // dt as double
+  double dt_double = (currentTime - this->lastUpdateTime_).Double();
   if (dt_double <= 1e-6) { 
       this->lastUpdateTime_ = currentTime; 
       return;
   }
-  // Convert dt_double to std::chrono::duration<double> for PID::Update
   std::chrono::duration<double> dt_chrono(dt_double);
 
 
@@ -147,20 +147,18 @@ void TrickExecutorPlugin::OnUpdate()
 
     ignition::math::Vector3d posError = ignition::math::Vector3d(targetX, targetY, targetZ) - currentPos;
 
-    double forceX = pidX_.Update(posError.X(), dt_chrono); // Corrected: use dt_chrono
-    double forceY = pidY_.Update(posError.Y(), dt_chrono); // Corrected: use dt_chrono
-    double forceZ = pidZ_.Update(posError.Z(), dt_chrono) + this->GetModelMass() * GRAVITY_MAGNITUDE; // Corrected: use dt_chrono
+    double forceX = pidX_.Update(posError.X(), dt_chrono); 
+    double forceY = pidY_.Update(posError.Y(), dt_chrono); 
+    double forceZ = pidZ_.Update(posError.Z(), dt_chrono) + this->GetModelMass() * GRAVITY_MAGNITUDE; 
 
     ignition::math::Vector3d forceCmdWorld(forceX, forceY, forceZ);
 
     double targetYawRad = atan2(targetVy, targetVx);
     double currentYawRad = currentOrient.Yaw();
     
-    // Use ignition::math::Angle::Normalized() to ensure angles are in [-Pi, Pi] range before subtraction, then normalize difference.
-    // A simpler approach for well-behaved angles is often just (target - current), then normalize.
-    // Angle::NormalizePiAboutZero ensures the angle is in [-pi, pi].
+    // Calculate shortest angle difference for yaw error
     double yawErrorRadians = ignition::math::Angle(targetYawRad - currentYawRad).Normalized().Radian();
-    double torqueZ_yaw = pidYaw_.Update(yawErrorRadians, dt_chrono); // Corrected: use dt_chrono
+    double torqueZ_yaw = pidYaw_.Update(yawErrorRadians, dt_chrono); 
 
     ignition::math::Vector3d torqueCmdBody(0, 0, torqueZ_yaw); 
 
@@ -339,12 +337,12 @@ void TrickExecutorPlugin::HandleJsonRequest(const std::string &requestStr)
   this->sequenceStartTime_ = this->world_->SimTime().Double(); 
   this->nextThrustIndex_ = 0;
   this->capturedFrames_.clear();
-  // Check if world_ and Physics() are valid before calling GetMaxStepSize()
-  double maxStepSize = 0.001; // Default if cannot get from physics engine
+  
+  double maxStepSize = 0.001; 
   if (this->world_ && this->world_->Physics()) {
       maxStepSize = this->world_->Physics()->GetMaxStepSize();
   }
-  if (maxStepSize > 1e-9) { // Avoid division by zero
+  if (maxStepSize > 1e-9) { 
     this->capturedFrames_.reserve(static_cast<size_t>(this->sequenceDuration_ / maxStepSize) + 100);
   } else {
      this->capturedFrames_.reserve(static_cast<size_t>(this->sequenceDuration_ / 0.001) + 100); 
@@ -413,7 +411,7 @@ void TrickExecutorPlugin::SetInitialState(const json &initState)
   this->model_->SetWorldPose(pose); 
   this->model_->SetLinearVel(linVel);
   this->model_->SetAngularVel(angVel);
-  if (this->world_ && this->world_->Physics()) { // Ensure physics is available before resetting states
+  if (this->world_ && this->world_->Physics()) { 
     this->model_->ResetPhysicsStates(); 
   }
 
